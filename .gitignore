@@ -1,0 +1,50 @@
+# .NET build outputs
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# VS Code
+.vscode/
+
+# Visual Studio
+.vs/
+*.csproj.user
+
+# NuGet
+packages/
+*.nupkg
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Folder config file
+Desktop.ini
+
+# macOS
+.DS_Store
+
+# Rider
+.idea/
+
+# Application logs
+logs/
+*.log
+
+# Local environment settings
+appsettings.Development.json
+appsettings.Local.json
+
+# Entity Framework Migrations (keep migrations, ignore designer files cache)
+# *.Designer.cs - Uncomment if you want to ignore migration designer files
