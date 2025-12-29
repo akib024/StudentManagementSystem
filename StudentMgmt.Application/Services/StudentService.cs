@@ -23,9 +23,36 @@ public class StudentService(
         return student.ToDto()!;
     }
 
-    public async Task<IEnumerable<StudentResponseDto>> GetAllAsync()
+    public async Task<IEnumerable<StudentResponseDto>> GetAllAsync(StudentFilterDto? filter = null)
     {
-        var students = await dbContext.Students.ToListAsync();
+        var query = dbContext.Students.AsQueryable();
+
+        if (filter is not null)
+        {
+            if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
+            {
+                var searchTerm = filter.SearchTerm.ToLower();
+                query = query.Where(s => s.FirstName.ToLower().Contains(searchTerm) ||
+                                        s.LastName.ToLower().Contains(searchTerm));
+            }
+
+            if (!string.IsNullOrWhiteSpace(filter.CourseName))
+            {
+                var courseName = filter.CourseName.ToLower();
+                query = query.Include(s => s.Enrollments)
+                            .ThenInclude(e => e.Course)
+                            .Where(s => s.Enrollments.Any(e => e.Course.Title.ToLower().Contains(courseName)));
+            }
+
+            if (filter.Status.HasValue)
+            {
+                var status = (EnrollmentStatus)filter.Status.Value;
+                query = query.Include(s => s.Enrollments)
+                            .Where(s => s.Enrollments.Any(e => e.Status == status));
+            }
+        }
+
+        var students = await query.AsNoTracking().ToListAsync();
         return students.Select(s => s.ToDto()!);
     }
 
@@ -85,6 +112,28 @@ public class StudentService(
         await dbContext.SaveChangesAsync();
 
         return student.ToDto()!;
+    }
+
+    public async Task DeleteStudentAsync(Guid id)
+    {
+        var student = await dbContext.Students.FirstOrDefaultAsync(s => s.Id == id);
+
+        if (student is null)
+        {
+            throw new KeyNotFoundException($"Student with ID '{id}' was not found.");
+        }
+
+        student.MarkAsDeleted();
+        student.LastModifiedAt = DateTime.UtcNow;
+
+        dbContext.Students.Update(student);
+        await dbContext.SaveChangesAsync();
+
+        logger.LogInformation(
+            "Student deleted: {FirstName} {LastName} (ID: {StudentId})",
+            student.FirstName,
+            student.LastName,
+            student.Id);
     }
 
     private static string GenerateEnrollmentNumber() =>

@@ -30,4 +30,6 @@ public class Student(
     [Required(ErrorMessage = "Enrollment number is required.")]
     [StringLength(50, ErrorMessage = "Enrollment number must not exceed 50 characters.")]
     public required string EnrollmentNumber { get; init; } = enrollmentNumber;
+
+    public ICollection<Enrollment> Enrollments { get; set; } = [];
 }

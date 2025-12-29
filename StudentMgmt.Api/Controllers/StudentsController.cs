@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StudentMgmt.Application.DTOs;
 using StudentMgmt.Application.Interfaces;
@@ -6,13 +7,14 @@ namespace StudentMgmt.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class StudentsController(IStudentService studentService) : ControllerBase
 {
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<StudentResponseDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] StudentFilterDto? filter)
     {
-        var students = await studentService.GetAllAsync();
+        var students = await studentService.GetAllAsync(filter);
         return Ok(students);
     }
 
@@ -33,6 +35,7 @@ public class StudentsController(IStudentService studentService) : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin,Staff")]
     [ProducesResponseType(typeof(StudentResponseDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Register([FromBody] CreateStudentRequest request)
@@ -50,6 +53,23 @@ public class StudentsController(IStudentService studentService) : ControllerBase
         catch (ApplicationException ex)
         {
             return BadRequest(new { Message = ex.Message });
+        }
+    }
+
+    [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        try
+        {
+            await studentService.DeleteStudentAsync(id);
+            return NoContent();
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound(new { Message = $"Student with ID '{id}' was not found." });
         }
     }
 }

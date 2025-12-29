@@ -1,8 +1,16 @@
 using System.Diagnostics;
+using System.Text;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using StudentMgmt.Api.Configuration;
 using StudentMgmt.Application.Interfaces;
 using StudentMgmt.Application.Services;
+using StudentMgmt.Application.Validators;
 using StudentMgmt.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,7 +21,73 @@ builder.Logging.AddConsole();
 
 // Add services to the container
 builder.Services.AddControllers();
-builder.Services.AddOpenApi();
+
+// Register FluentValidation
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateStudentRequestValidator>();
+
+// Configure JWT Settings using Options Pattern
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(JwtSettings.SectionName));
+
+var jwtSettings = builder.Configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>()!;
+
+// Configure JWT Authentication
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtSettings.Issuer,
+        ValidAudience = jwtSettings.Audience,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key))
+    };
+});
+
+builder.Services.AddAuthorization();
+
+// Configure Swagger with JWT Bearer Authentication
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Student Management API",
+        Version = "v1",
+        Description = "A Clean Architecture API for managing students, courses, and enrollments."
+    });
+
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter your JWT token. Example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 // Register StudentDbContext with SQL Server
 builder.Services.AddDbContext<StudentDbContext>(options =>
@@ -28,6 +102,14 @@ builder.Services.AddScoped<IApplicationDbContext>(provider => provider.GetRequir
 builder.Services.AddScoped<IStudentService, StudentService>();
 
 var app = builder.Build();
+
+// Seed database in Development environment
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<StudentDbContext>();
+    await DbInitializer.SeedAsync(dbContext);
+}
 
 // Global Exception Handling Middleware
 app.UseExceptionHandler(errorApp =>
@@ -64,15 +146,16 @@ app.UseExceptionHandler(errorApp =>
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
     app.UseSwaggerUI(options =>
     {
-        options.SwaggerEndpoint("/openapi/v1.json", "Student Management API v1");
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Student Management API v1");
         options.RoutePrefix = string.Empty;
     });
 }
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 

@@ -52,7 +52,7 @@ public class StudentDbContext(DbContextOptions<StudentDbContext> options) : DbCo
             entity.Property(e => e.Grade).HasPrecision(5, 2);
 
             entity.HasOne(e => e.Student)
-                .WithMany()
+                .WithMany(s => s.Enrollments)
                 .HasForeignKey(e => e.StudentId)
                 .OnDelete(DeleteBehavior.Restrict);
 
