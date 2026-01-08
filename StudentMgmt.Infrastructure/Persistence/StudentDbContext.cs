@@ -11,6 +11,8 @@ public class StudentDbContext(DbContextOptions<StudentDbContext> options) : DbCo
     public DbSet<Teacher> Teachers => Set<Teacher>();
     public DbSet<Course> Courses => Set<Course>();
     public DbSet<Enrollment> Enrollments => Set<Enrollment>();
+    public DbSet<Result> Results => Set<Result>();
+    public DbSet<User> Users => Set<User>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -59,6 +61,39 @@ public class StudentDbContext(DbContextOptions<StudentDbContext> options) : DbCo
             entity.HasOne(e => e.Course)
                 .WithMany(c => c.Enrollments)
                 .HasForeignKey(e => e.CourseId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // Configure Result entity with one-to-one relationship
+        modelBuilder.Entity<Result>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.EnrollmentId).IsUnique();
+            entity.HasQueryFilter("SoftDeleteFilter", e => !e.IsDeleted);
+
+            entity.Property(e => e.Score).HasPrecision(5, 2);
+            entity.ToTable(t => t.HasCheckConstraint("CK_Results_Score", "[Score] >= 0 AND [Score] <= 100"));
+
+            entity.HasOne(e => e.Enrollment)
+                .WithOne(e => e.ExamResult)
+                .HasForeignKey<Result>(e => e.EnrollmentId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Configure User entity
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.Username).IsUnique();
+            entity.HasQueryFilter("SoftDeleteFilter", e => !e.IsDeleted);
+
+            entity.Property(e => e.Username).HasMaxLength(50).IsRequired();
+            entity.Property(e => e.PasswordHash).IsRequired();
+            entity.Property(e => e.Role).HasMaxLength(20).IsRequired();
+
+            entity.HasOne(e => e.Student)
+                .WithOne()
+                .HasForeignKey<User>(e => e.StudentId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
     }

@@ -7,20 +7,46 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Serilog;
 using StudentMgmt.Api.Configuration;
 using StudentMgmt.Application.Interfaces;
 using StudentMgmt.Application.Services;
 using StudentMgmt.Application.Validators;
 using StudentMgmt.Infrastructure.Persistence;
 
+// Initialize Serilog at the very top
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateBootstrapLogger();
+
+Log.Information("Starting Student Management API...");
+
+try
+{
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure logging
-builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
+// Configure Serilog from appsettings.json
+builder.Host.UseSerilog((context, services, configuration) => configuration
+    .ReadFrom.Configuration(context.Configuration)
+    .ReadFrom.Services(services)
+    .Enrich.FromLogContext()
+    .Enrich.WithMachineName()
+    .Enrich.WithThreadId());
 
 // Add services to the container
 builder.Services.AddControllers();
+
+// Configure CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173", "http://localhost:5174")
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials();
+    });
+});
 
 // Register FluentValidation
 builder.Services.AddFluentValidationAutoValidation();
@@ -100,6 +126,11 @@ builder.Services.AddScoped<IApplicationDbContext>(provider => provider.GetRequir
 
 // Register Application Services (Scoped lifetime)
 builder.Services.AddScoped<IStudentService, StudentService>();
+builder.Services.AddScoped<IResultService, ResultService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ICourseService, CourseService>();
+builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
+builder.Services.AddScoped<ITeacherService, TeacherService>();
 
 var app = builder.Build();
 
@@ -127,8 +158,11 @@ app.UseExceptionHandler(errorApp =>
         {
             logger.LogError(
                 exceptionHandlerFeature.Error,
-                "Unhandled exception occurred. TraceId: {TraceId}",
-                traceId);
+                "Unhandled exception occurred. TraceId: {TraceId}, Path: {Path}, Method: {Method}, StackTrace: {StackTrace}",
+                traceId,
+                context.Request.Path,
+                context.Request.Method,
+                exceptionHandlerFeature.Error.StackTrace);
         }
 
         var errorResponse = new
@@ -155,8 +189,25 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Enable CORS
+app.UseCors("AllowReactApp");
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
+Log.Information("Student Management API started successfully");
+
 app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application startup failed");
+    throw;
+}
+finally
+{
+    Log.Information("Shutting down Student Management API...");
+    await Log.CloseAndFlushAsync();
+}

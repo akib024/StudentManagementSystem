@@ -1,10 +1,12 @@
-using StudentMgmt.Domain.Entities;
+using StudentMgmt.Application.DTOs;
 
 namespace StudentMgmt.Application.Interfaces;
 
 public interface ICourseService
 {
-    Task<Course> CreateCourseAsync(Course course);
-    Task<IEnumerable<Course>> GetCourseCatalogAsync();
-    Task AssignTeacherToCourseAsync(Guid teacherId, Guid courseId);
+    Task<CourseResponseDto> CreateCourseAsync(CreateCourseRequest request);
+    Task<CourseResponseDto?> GetCourseByIdAsync(Guid id);
+    Task<IEnumerable<CourseResponseDto>> GetCourseCatalogAsync();
+    Task<CourseResponseDto> UpdateCourseAsync(Guid id, UpdateCourseRequest request);
+    Task DeleteCourseAsync(Guid id);
 }

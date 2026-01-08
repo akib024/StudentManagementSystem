@@ -12,7 +12,16 @@ public static class MappingExtensions
             FirstName = student.FirstName,
             LastName = student.LastName,
             Email = student.Email,
-            EnrollmentNumber = student.EnrollmentNumber
+            EnrollmentNumber = student.EnrollmentNumber,
+            Enrollments = student.Enrollments?.Select(e => new StudentEnrollmentDto
+            {
+                EnrollmentId = e.Id,
+                CourseCode = e.Course?.CourseCode ?? string.Empty,
+                CourseTitle = e.Course?.Title ?? string.Empty,
+                Credits = e.Course?.Credits ?? 0,
+                Status = e.Status.ToString(),
+                Grade = e.Grade
+            }) ?? []
         };
 
     public static Student ToEntity(this CreateStudentRequest request) =>
@@ -26,13 +35,13 @@ public static class MappingExtensions
         };
 
     public static CourseResponseDto? ToDto(this Course? course) =>
-        course is null ? null : new()
-        {
-            Id = course.Id,
-            CourseCode = course.CourseCode,
-            Title = course.Title,
-            Credits = course.Credits
-        };
+        course is null ? null : new(
+            course.Id,
+            course.CourseCode,
+            course.Title,
+            course.Credits,
+            course.Description,
+            course.Enrollments?.Count ?? 0);
 
     public static Course ToEntity(this CreateCourseRequest request) =>
         new(request.CourseCode, request.Title, request.Credits)
@@ -44,14 +53,18 @@ public static class MappingExtensions
         };
 
     public static EnrollmentResponseDto? ToDto(this Enrollment? enrollment) =>
-        enrollment is null ? null : new()
-        {
-            Id = enrollment.Id,
-            StudentName = $"{enrollment.Student?.FirstName} {enrollment.Student?.LastName}".Trim(),
-            CourseTitle = enrollment.Course?.Title ?? string.Empty,
-            Grade = enrollment.Grade,
-            Status = enrollment.Status.ToString()
-        };
+        enrollment is null ? null : new(
+            enrollment.Id,
+            enrollment.StudentId,
+            $"{enrollment.Student?.FirstName} {enrollment.Student?.LastName}".Trim(),
+            enrollment.Student?.EnrollmentNumber ?? string.Empty,
+            enrollment.CourseId,
+            enrollment.Course?.CourseCode ?? string.Empty,
+            enrollment.Course?.Title ?? string.Empty,
+            enrollment.Course?.Credits ?? 0,
+            enrollment.Grade,
+            enrollment.Status.ToString(),
+            DateTime.UtcNow);
 
     private static string GenerateEnrollmentNumber() =>
         $"STU-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString()[..8].ToUpperInvariant()}";

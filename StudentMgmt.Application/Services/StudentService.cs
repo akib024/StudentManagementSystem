@@ -13,7 +13,10 @@ public class StudentService(
 {
     public async Task<StudentResponseDto> GetByIdAsync(Guid id)
     {
-        var student = await dbContext.Students.FirstOrDefaultAsync(s => s.Id == id);
+        var student = await dbContext.Students
+            .Include(s => s.Enrollments)
+            .ThenInclude(e => e.Course)
+            .FirstOrDefaultAsync(s => s.Id == id);
 
         if (student is null)
         {
@@ -25,7 +28,10 @@ public class StudentService(
 
     public async Task<IEnumerable<StudentResponseDto>> GetAllAsync(StudentFilterDto? filter = null)
     {
-        var query = dbContext.Students.AsQueryable();
+        var query = dbContext.Students
+            .Include(s => s.Enrollments)
+            .ThenInclude(e => e.Course)
+            .AsQueryable();
 
         if (filter is not null)
         {
@@ -39,16 +45,13 @@ public class StudentService(
             if (!string.IsNullOrWhiteSpace(filter.CourseName))
             {
                 var courseName = filter.CourseName.ToLower();
-                query = query.Include(s => s.Enrollments)
-                            .ThenInclude(e => e.Course)
-                            .Where(s => s.Enrollments.Any(e => e.Course.Title.ToLower().Contains(courseName)));
+                query = query.Where(s => s.Enrollments.Any(e => e.Course.Title.ToLower().Contains(courseName)));
             }
 
             if (filter.Status.HasValue)
             {
                 var status = (EnrollmentStatus)filter.Status.Value;
-                query = query.Include(s => s.Enrollments)
-                            .Where(s => s.Enrollments.Any(e => e.Status == status));
+                query = query.Where(s => s.Enrollments.Any(e => e.Status == status));
             }
         }
 

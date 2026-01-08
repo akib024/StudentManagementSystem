@@ -12,16 +12,20 @@ public class Student(
 {
     [Required(ErrorMessage = "First name is required.")]
     [StringLength(100, MinimumLength = 1, ErrorMessage = "First name must be between 1 and 100 characters.")]
-    public required string FirstName { get; init; } = firstName;
+    public required string FirstName { get; set; } = firstName;
 
     [Required(ErrorMessage = "Last name is required.")]
     [StringLength(100, MinimumLength = 1, ErrorMessage = "Last name must be between 1 and 100 characters.")]
-    public required string LastName { get; init; } = lastName;
+    public required string LastName { get; set; } = lastName;
 
     [Required(ErrorMessage = "Email is required.")]
     [EmailAddress(ErrorMessage = "Invalid email format.")]
     [StringLength(255, ErrorMessage = "Email must not exceed 255 characters.")]
-    public required string Email { get; init; } = email;
+    public required string Email { get; set; } = email;
+
+    [Phone(ErrorMessage = "Invalid phone number format.")]
+    [StringLength(20, ErrorMessage = "Phone number must not exceed 20 characters.")]
+    public string? PhoneNumber { get; set; }
 
     [Required(ErrorMessage = "Date of birth is required.")]
     [DataType(DataType.Date)]

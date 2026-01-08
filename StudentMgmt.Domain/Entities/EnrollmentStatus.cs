@@ -5,5 +5,6 @@ public enum EnrollmentStatus
     Active,
     Dropped,
     Completed,
-    Failed
+    Failed,
+    Withdrawn
 }

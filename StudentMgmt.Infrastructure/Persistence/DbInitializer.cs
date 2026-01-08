@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using StudentMgmt.Domain.Entities;
+using BCrypt.Net;
 
 namespace StudentMgmt.Infrastructure.Persistence;
 
@@ -7,6 +8,21 @@ public static class DbInitializer
 {
     public static async Task SeedAsync(StudentDbContext context)
     {
+        // Check if Users table is empty - if so, create initial admin
+        if (!await context.Users.AnyAsync())
+        {
+            var adminUser = new User
+            {
+                Username = "admin",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("AdminPassword123!"),
+                Role = "Admin"
+            };
+
+            await context.Users.AddAsync(adminUser);
+            await context.SaveChangesAsync();
+        }
+
+        // Check if Students table has data - if not, seed sample data
         if (await context.Students.AnyAsync())
         {
             return;
@@ -81,6 +97,22 @@ public static class DbInitializer
         };
 
         await context.Teachers.AddRangeAsync(teacher1, teacher2);
+
+        // Student with fixed ID matching the mock authentication (student/student)
+        var studentTest = new Student(
+            firstName: "John",
+            lastName: "Doe",
+            email: "john.doe@student.edu",
+            dateOfBirth: new DateTime(2002, 1, 1),
+            enrollmentNumber: "STU2024000")
+        {
+            FirstName = "John",
+            LastName = "Doe",
+            Email = "john.doe@student.edu",
+            DateOfBirth = new DateTime(2002, 1, 1),
+            EnrollmentNumber = "STU2024000",
+            CreatedBy = "System"
+        };
 
         var student1 = new Student(
             firstName: "Emily",
@@ -157,7 +189,45 @@ public static class DbInitializer
             CreatedBy = "System"
         };
 
-        await context.Students.AddRangeAsync(student1, student2, student3, student4, student5);
+        await context.Students.AddRangeAsync(studentTest, student1, student2, student3, student4, student5);
+        await context.SaveChangesAsync(); // Save to generate IDs
+
+        // Get the actual student ID
+        var testStudentId = studentTest.Id;
+
+        // Update the auth controller's student ID in a comment for reference
+        // The test student ID is: {testStudentId}
+
+        // Enrollments for test student
+        var enrollmentTest1 = new Enrollment(
+            studentId: testStudentId,
+            courseId: course1.Id)
+        {
+            StudentId = testStudentId,
+            CourseId = course1.Id,
+            Status = EnrollmentStatus.Active,
+            CreatedBy = "System"
+        };
+
+        var enrollmentTest2 = new Enrollment(
+            studentId: testStudentId,
+            courseId: course2.Id)
+        {
+            StudentId = testStudentId,
+            CourseId = course2.Id,
+            Status = EnrollmentStatus.Active,
+            CreatedBy = "System"
+        };
+
+        var enrollmentTest3 = new Enrollment(
+            studentId: testStudentId,
+            courseId: course3.Id)
+        {
+            StudentId = testStudentId,
+            CourseId = course3.Id,
+            Status = EnrollmentStatus.Active,
+            CreatedBy = "System"
+        };
 
         var enrollment1 = new Enrollment(
             studentId: student1.Id,
@@ -179,7 +249,74 @@ public static class DbInitializer
             CreatedBy = "System"
         };
 
-        await context.Enrollments.AddRangeAsync(enrollment1, enrollment2);
+        await context.Enrollments.AddRangeAsync(enrollmentTest1, enrollmentTest2, enrollmentTest3, enrollment1, enrollment2);
+
+        await context.SaveChangesAsync();
+
+        // Seed additional User accounts with hashed passwords (admin already created at start)
+        var staffUser = new User
+        {
+            Username = "staff",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("staff"),
+            Role = "Staff"
+        };
+
+        var johnDoeUser = new User
+        {
+            Username = "john.doe",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("password123"),
+            Role = "Student",
+            StudentId = studentTest.Id
+        };
+
+        var emilyUser = new User
+        {
+            Username = "emily.davis",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("password123"),
+            Role = "Student",
+            StudentId = student1.Id
+        };
+
+        var jamesUser = new User
+        {
+            Username = "james.wilson",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("password123"),
+            Role = "Student",
+            StudentId = student2.Id
+        };
+
+        var sophiaUser = new User
+        {
+            Username = "sophia.martinez",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("password123"),
+            Role = "Student",
+            StudentId = student3.Id
+        };
+
+        var liamUser = new User
+        {
+            Username = "liam.anderson",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("password123"),
+            Role = "Student",
+            StudentId = student4.Id
+        };
+
+        var oliviaUser = new User
+        {
+            Username = "olivia.taylor",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("password123"),
+            Role = "Student",
+            StudentId = student5.Id
+        };
+
+        await context.Users.AddRangeAsync(
+            staffUser, 
+            johnDoeUser, 
+            emilyUser, 
+            jamesUser, 
+            sophiaUser, 
+            liamUser, 
+            oliviaUser);
 
         await context.SaveChangesAsync();
     }
