@@ -49,6 +49,15 @@ public class TeachersController(
         return Ok(teachers);
     }
 
+    [HttpGet("employee-id/next")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetNextEmployeeId()
+    {
+        var employeeId = await _teacherService.GenerateNextEmployeeIdAsync();
+        return Ok(new { employeeId });
+    }
+
     [HttpPost]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(TeacherResponseDto), StatusCodes.Status201Created)]

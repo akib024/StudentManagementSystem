@@ -72,4 +72,13 @@ public class StudentsController(IStudentService studentService) : ControllerBase
             return NotFound(new { Message = $"Student with ID '{id}' was not found." });
         }
     }
+
+    [HttpGet("enrollment-number/next")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetNextEnrollmentNumber()
+    {
+        var enrollmentNumber = await studentService.GenerateNextEnrollmentNumberAsync();
+        return Ok(new { enrollmentNumber });
+    }
 }

@@ -11,9 +11,11 @@ namespace StudentMgmt.Api.Controllers;
 [Authorize]
 public class EnrollmentsController(
     IEnrollmentService enrollmentService,
+    IUserService userService,
     ILogger<EnrollmentsController> logger) : ControllerBase
 {
     private readonly IEnrollmentService _enrollmentService = enrollmentService;
+    private readonly IUserService _userService = userService;
     private readonly ILogger<EnrollmentsController> _logger = logger;
 
     [HttpGet]
@@ -51,7 +53,7 @@ public class EnrollmentsController(
     }
 
     [HttpGet("course/{courseId:guid}")]
-    [Authorize(Roles = "Admin,Staff")]
+    [Authorize(Roles = "Admin,Staff,Teacher")]
     [ProducesResponseType(typeof(IEnumerable<EnrollmentResponseDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetCourseEnrollments(Guid courseId)
     {
@@ -72,8 +74,15 @@ public class EnrollmentsController(
             return Unauthorized("Invalid user token.");
         }
 
-        // Get student ID from user
-        var enrollments = await _enrollmentService.GetStudentEnrollmentsAsync(userId);
+        // Get user to retrieve StudentId
+        var user = await _userService.GetUserByIdAsync(userId);
+        
+        if (user?.StudentId is null)
+        {
+            return NotFound(new { message = "Student information not found for this user." });
+        }
+
+        var enrollments = await _enrollmentService.GetStudentEnrollmentsAsync(user.StudentId.Value);
         return Ok(enrollments);
     }
 
@@ -91,9 +100,17 @@ public class EnrollmentsController(
             return Unauthorized("Invalid user token.");
         }
 
+        // Get user to retrieve StudentId
+        var user = await _userService.GetUserByIdAsync(userId);
+        
+        if (user?.StudentId is null)
+        {
+            return NotFound(new { message = "Student information not found for this user." });
+        }
+
         try
         {
-            var transcript = await _enrollmentService.GetStudentTranscriptAsync(userId);
+            var transcript = await _enrollmentService.GetStudentTranscriptAsync(user.StudentId.Value);
             return Ok(transcript);
         }
         catch (InvalidOperationException ex)
@@ -143,7 +160,7 @@ public class EnrollmentsController(
     }
 
     [HttpPut("{id:guid}/status")]
-    [Authorize(Roles = "Admin,Staff")]
+    [Authorize(Roles = "Admin,Staff,Teacher")]
     [ProducesResponseType(typeof(EnrollmentResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -152,6 +169,45 @@ public class EnrollmentsController(
         try
         {
             var enrollment = await _enrollmentService.UpdateEnrollmentStatusAsync(id, request);
+            return Ok(enrollment);
+        }
+        catch (InvalidOperationException ex)
+        {
+            if (ex.Message.Contains("not found"))
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPut("batch/status")]
+    [Authorize(Roles = "Admin,Staff,Teacher")]
+    [ProducesResponseType(typeof(BatchOperationResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> BatchUpdateEnrollmentStatus([FromBody] BatchUpdateStatusRequest request)
+    {
+        try
+        {
+            var result = await _enrollmentService.BatchUpdateEnrollmentStatusAsync(request);
+            return Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPut("{id:guid}/grade")]
+    [Authorize(Roles = "Admin,Staff,Teacher")]
+    [ProducesResponseType(typeof(EnrollmentResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateEnrollmentGrade(Guid id, [FromBody] UpdateEnrollmentGradeRequest request)
+    {
+        try
+        {
+            var enrollment = await _enrollmentService.UpdateEnrollmentGradeAsync(id, request);
             return Ok(enrollment);
         }
         catch (InvalidOperationException ex)
