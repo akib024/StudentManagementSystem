@@ -34,6 +34,19 @@ export const enrollmentService = {
     });
   },
 
+  async batchUpdateEnrollmentStatus(enrollmentIds, status) {
+    return apiClient.put('/enrollments/batch/status', {
+      enrollmentIds,
+      status,
+    });
+  },
+
+  async updateEnrollmentGrade(id, grade) {
+    return apiClient.put(`/enrollments/${id}/grade`, {
+      grade,
+    });
+  },
+
   async withdrawEnrollment(id) {
     return apiClient.delete(`/enrollments/${id}`);
   },

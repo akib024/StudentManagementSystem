@@ -28,44 +28,7 @@ public static class DbInitializer
             return;
         }
 
-        var course1 = new Course(
-            courseCode: "CS101",
-            title: "Introduction to C#",
-            credits: 3)
-        {
-            CourseCode = "CS101",
-            Title = "Introduction to C#",
-            Credits = 3,
-            Description = "Learn the fundamentals of C# programming language, including syntax, data types, and object-oriented concepts.",
-            CreatedBy = "System"
-        };
-
-        var course2 = new Course(
-            courseCode: "DB201",
-            title: "Database Design",
-            credits: 4)
-        {
-            CourseCode = "DB201",
-            Title = "Database Design",
-            Credits = 4,
-            Description = "Comprehensive course covering relational database design, normalization, and SQL.",
-            CreatedBy = "System"
-        };
-
-        var course3 = new Course(
-            courseCode: "API301",
-            title: "Web API Architecture",
-            credits: 3)
-        {
-            CourseCode = "API301",
-            Title = "Web API Architecture",
-            Credits = 3,
-            Description = "Master RESTful API design, implementation using ASP.NET Core, and best practices.",
-            CreatedBy = "System"
-        };
-
-        await context.Courses.AddRangeAsync(course1, course2, course3);
-
+        // Create teachers first
         var teacher1 = new Teacher(
             firstName: "Sarah",
             lastName: "Johnson",
@@ -97,6 +60,49 @@ public static class DbInitializer
         };
 
         await context.Teachers.AddRangeAsync(teacher1, teacher2);
+        await context.SaveChangesAsync(); // Save teachers first to get IDs
+
+        // Create courses and assign teachers
+        var course1 = new Course(
+            courseCode: "CS101",
+            title: "Introduction to C#",
+            credits: 3)
+        {
+            CourseCode = "CS101",
+            Title = "Introduction to C#",
+            Credits = 3,
+            Description = "Learn the fundamentals of C# programming language, including syntax, data types, and object-oriented concepts.",
+            TeacherId = teacher1.Id,
+            CreatedBy = "System"
+        };
+
+        var course2 = new Course(
+            courseCode: "DB201",
+            title: "Database Design",
+            credits: 4)
+        {
+            CourseCode = "DB201",
+            Title = "Database Design",
+            Credits = 4,
+            Description = "Comprehensive course covering relational database design, normalization, and SQL.",
+            TeacherId = teacher2.Id,
+            CreatedBy = "System"
+        };
+
+        var course3 = new Course(
+            courseCode: "API301",
+            title: "Web API Architecture",
+            credits: 3)
+        {
+            CourseCode = "API301",
+            Title = "Web API Architecture",
+            Credits = 3,
+            Description = "Master RESTful API design, implementation using ASP.NET Core, and best practices.",
+            TeacherId = teacher1.Id,
+            CreatedBy = "System"
+        };
+
+        await context.Courses.AddRangeAsync(course1, course2, course3);
 
         // Student with fixed ID matching the mock authentication (student/student)
         var studentTest = new Student(
@@ -309,6 +315,22 @@ public static class DbInitializer
             StudentId = student5.Id
         };
 
+        var sarahTeacherUser = new User
+        {
+            Username = "sarah.johnson",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("teacher123"),
+            Role = "Teacher",
+            TeacherId = teacher1.Id
+        };
+
+        var michaelTeacherUser = new User
+        {
+            Username = "michael.chen",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("teacher123"),
+            Role = "Teacher",
+            TeacherId = teacher2.Id
+        };
+
         await context.Users.AddRangeAsync(
             staffUser, 
             johnDoeUser, 
@@ -316,7 +338,9 @@ public static class DbInitializer
             jamesUser, 
             sophiaUser, 
             liamUser, 
-            oliviaUser);
+            oliviaUser,
+            sarahTeacherUser,
+            michaelTeacherUser);
 
         await context.SaveChangesAsync();
     }

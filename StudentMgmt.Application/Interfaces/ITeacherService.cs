@@ -10,4 +10,5 @@ public interface ITeacherService
     Task<IEnumerable<TeacherResponseDto>> GetTeachersByDepartmentAsync(string department);
     Task<TeacherResponseDto> UpdateTeacherAsync(Guid id, UpdateTeacherRequest request);
     Task DeleteTeacherAsync(Guid id);
+    Task<string> GenerateNextEmployeeIdAsync();
 }

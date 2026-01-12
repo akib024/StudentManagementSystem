@@ -8,8 +8,9 @@ import {
   UserCheck,
   GraduationCap,
   X,
+  BarChart3,
 } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../contexts/AuthContext';
 import { ROLES } from '../../utils/constants';
 
 const Sidebar = ({ isOpen, onClose }) => {
@@ -43,6 +44,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         { name: 'My Courses', path: '/my-courses', icon: BookOpen },
         { name: 'Students', path: '/students', icon: GraduationCap },
         { name: 'Grades', path: '/grades', icon: ClipboardList },
+        { name: 'Grade Reports', path: '/reports/grades', icon: BarChart3 },
       ];
     }
 
@@ -50,8 +52,8 @@ const Sidebar = ({ isOpen, onClose }) => {
       return [
         ...commonItems,
         { name: 'My Courses', path: '/my-courses', icon: BookOpen },
-        { name: 'Enrollments', path: '/enrollments', icon: ClipboardList },
-        { name: 'Transcript', path: '/transcript', icon: GraduationCap },
+        { name: 'Transcript', path: '/reports/transcript', icon: GraduationCap },
+        { name: 'Analytics', path: '/reports/analytics', icon: BarChart3 },
       ];
     }
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { BookOpen, Users, ClipboardList } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../contexts/AuthContext';
 
 const TeacherDashboard = () => {
   const { currentUser } = useAuth();

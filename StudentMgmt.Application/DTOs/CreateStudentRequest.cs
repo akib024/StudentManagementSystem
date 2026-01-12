@@ -17,6 +17,11 @@ public record class CreateStudentRequest
     [StringLength(255, ErrorMessage = "Email must not exceed 255 characters.")]
     public required string Email { get; init; }
 
+    [StringLength(50, ErrorMessage = "Enrollment number must not exceed 50 characters.")]
+    public string? EnrollmentNumber { get; init; }
+
+    public string? PhoneNumber { get; init; }
+
     [Required(ErrorMessage = "Date of birth is required.")]
     [DataType(DataType.Date)]
     public required DateTime DateOfBirth { get; init; }

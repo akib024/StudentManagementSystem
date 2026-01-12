@@ -13,6 +13,10 @@ export const teacherService = {
     return apiClient.get(`/teachers/department/${department}`);
   },
 
+  async getNextEmployeeId() {
+    return apiClient.get('/teachers/employee-id/next');
+  },
+
   async createTeacher(data) {
     return apiClient.post('/teachers', data);
   },

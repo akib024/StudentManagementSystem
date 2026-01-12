@@ -7,6 +7,18 @@ public record EnrollStudentRequest(
 public record UpdateEnrollmentStatusRequest(
     string Status);
 
+public record UpdateEnrollmentGradeRequest(
+    string Grade);
+
+public record BatchUpdateStatusRequest(
+    Guid[] EnrollmentIds,
+    string Status);
+
+public record BatchOperationResult(
+    int SuccessCount,
+    int FailureCount,
+    IEnumerable<string> Errors);
+
 public record EnrollmentResponseDto(
     Guid Id,
     Guid StudentId,
@@ -16,6 +28,7 @@ public record EnrollmentResponseDto(
     string CourseCode,
     string CourseTitle,
     int Credits,
+    string? TeacherName,
     decimal? Grade,
     string Status,
     DateTime EnrolledAt);

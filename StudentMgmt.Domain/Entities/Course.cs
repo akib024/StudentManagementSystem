@@ -23,5 +23,8 @@ public class Course(
     [StringLength(1000, ErrorMessage = "Description must not exceed 1000 characters.")]
     public string? Description { get; set; }
 
+    public Guid? TeacherId { get; set; }
+    public Teacher? Teacher { get; set; }
+
     public ICollection<Enrollment> Enrollments { get; set; } = [];
 }

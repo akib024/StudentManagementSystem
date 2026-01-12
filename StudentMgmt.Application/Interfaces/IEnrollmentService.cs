@@ -10,6 +10,8 @@ public interface IEnrollmentService
     Task<IEnumerable<EnrollmentResponseDto>> GetStudentEnrollmentsAsync(Guid studentId);
     Task<IEnumerable<EnrollmentResponseDto>> GetCourseEnrollmentsAsync(Guid courseId);
     Task<EnrollmentResponseDto> UpdateEnrollmentStatusAsync(Guid id, UpdateEnrollmentStatusRequest request);
+    Task<BatchOperationResult> BatchUpdateEnrollmentStatusAsync(BatchUpdateStatusRequest request);
+    Task<EnrollmentResponseDto> UpdateEnrollmentGradeAsync(Guid id, UpdateEnrollmentGradeRequest request);
     Task<TranscriptDto> GetStudentTranscriptAsync(Guid studentId);
     Task WithdrawEnrollmentAsync(Guid id);
 }

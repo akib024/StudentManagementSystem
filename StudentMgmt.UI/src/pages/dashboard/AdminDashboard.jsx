@@ -79,32 +79,36 @@ const AdminDashboard = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-gray-500">Loading dashboard...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div>
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Admin Dashboard</h2>
+    <div className="space-y-8">
+      {/* Header */}
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Admin Dashboard</h2>
         <p className="text-gray-600 mt-1">Welcome back! Here's your system overview.</p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {statCards.map((card) => (
           <div
             key={card.title}
-            className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+            className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 hover:shadow-md hover:border-gray-300 transition-all duration-200"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">{card.title}</p>
-                <p className="text-3xl font-bold text-gray-800">{card.value}</p>
+                <p className="text-sm font-medium text-gray-600 mb-1">{card.title}</p>
+                <p className="text-3xl font-bold text-gray-900">{card.value}</p>
               </div>
-              <div className={`${card.bgLight} p-3 rounded-lg`}>
-                <card.icon className={`w-8 h-8 ${card.textColor}`} />
+              <div className={`${card.bgLight} p-3.5 rounded-xl`}>
+                <card.icon className={`w-7 h-7 ${card.textColor}`} />
               </div>
             </div>
           </div>
@@ -112,23 +116,31 @@ const AdminDashboard = () => {
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <button className="flex items-center gap-3 p-4 border-2 border-blue-200 rounded-lg hover:bg-blue-50 transition-colors">
-            <Users className="w-6 h-6 text-blue-600" />
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-5">Quick Actions</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <button className="flex items-center gap-3 p-4 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 hover:border-blue-300 transition-all duration-200 group">
+            <div className="p-2 bg-white rounded-lg shadow-sm group-hover:shadow transition-shadow">
+              <Users className="w-5 h-5 text-blue-600" />
+            </div>
             <span className="font-medium text-gray-700">Add Student</span>
           </button>
-          <button className="flex items-center gap-3 p-4 border-2 border-green-200 rounded-lg hover:bg-green-50 transition-colors">
-            <UserCheck className="w-6 h-6 text-green-600" />
+          <button className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-xl hover:bg-green-100 hover:border-green-300 transition-all duration-200 group">
+            <div className="p-2 bg-white rounded-lg shadow-sm group-hover:shadow transition-shadow">
+              <UserCheck className="w-5 h-5 text-green-600" />
+            </div>
             <span className="font-medium text-gray-700">Add Teacher</span>
           </button>
-          <button className="flex items-center gap-3 p-4 border-2 border-purple-200 rounded-lg hover:bg-purple-50 transition-colors">
-            <BookOpen className="w-6 h-6 text-purple-600" />
+          <button className="flex items-center gap-3 p-4 bg-purple-50 border border-purple-200 rounded-xl hover:bg-purple-100 hover:border-purple-300 transition-all duration-200 group">
+            <div className="p-2 bg-white rounded-lg shadow-sm group-hover:shadow transition-shadow">
+              <BookOpen className="w-5 h-5 text-purple-600" />
+            </div>
             <span className="font-medium text-gray-700">Add Course</span>
           </button>
-          <button className="flex items-center gap-3 p-4 border-2 border-orange-200 rounded-lg hover:bg-orange-50 transition-colors">
-            <ClipboardList className="w-6 h-6 text-orange-600" />
+          <button className="flex items-center gap-3 p-4 bg-orange-50 border border-orange-200 rounded-xl hover:bg-orange-100 hover:border-orange-300 transition-all duration-200 group">
+            <div className="p-2 bg-white rounded-lg shadow-sm group-hover:shadow transition-shadow">
+              <ClipboardList className="w-5 h-5 text-orange-600" />
+            </div>
             <span className="font-medium text-gray-700">Manage Enrollments</span>
           </button>
         </div>

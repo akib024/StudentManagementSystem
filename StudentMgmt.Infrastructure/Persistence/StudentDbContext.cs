@@ -13,6 +13,7 @@ public class StudentDbContext(DbContextOptions<StudentDbContext> options) : DbCo
     public DbSet<Enrollment> Enrollments => Set<Enrollment>();
     public DbSet<Result> Results => Set<Result>();
     public DbSet<User> Users => Set<User>();
+    public DbSet<Department> Departments => Set<Department>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -94,6 +95,20 @@ public class StudentDbContext(DbContextOptions<StudentDbContext> options) : DbCo
             entity.HasOne(e => e.Student)
                 .WithOne()
                 .HasForeignKey<User>(e => e.StudentId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // Configure Department entity
+        modelBuilder.Entity<Department>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.Name).IsUnique();
+            entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Description).HasMaxLength(500);
+
+            entity.HasMany(d => d.Teachers)
+                .WithOne()
+                .HasForeignKey(t => t.DepartmentId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
     }

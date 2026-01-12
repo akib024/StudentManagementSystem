@@ -19,4 +19,8 @@ public class User : BaseEntity
     public Guid? StudentId { get; init; }
 
     public Student? Student { get; set; }
+
+    public Guid? TeacherId { get; init; }
+
+    public Teacher? Teacher { get; set; }
 }

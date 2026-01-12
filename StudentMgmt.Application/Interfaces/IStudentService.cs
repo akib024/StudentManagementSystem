@@ -9,4 +9,5 @@ public interface IStudentService
     Task<StudentResponseDto> RegisterStudentAsync(CreateStudentRequest request);
     Task<StudentResponseDto> UpdateProfileAsync(Guid id, CreateStudentRequest request);
     Task DeleteStudentAsync(Guid id);
+    Task<string> GenerateNextEnrollmentNumberAsync();
 }

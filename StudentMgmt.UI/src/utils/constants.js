@@ -1,5 +1,5 @@
 // API Configuration
-export const API_BASE_URL = 'https://localhost:7121/api';
+export const API_BASE_URL = 'http://localhost:5154/api';
 export const API_TIMEOUT = 30000; // 30 seconds
 
 // User Roles
@@ -13,9 +13,18 @@ export const ROLES = {
 export const ENROLLMENT_STATUS = {
   ACTIVE: 'Active',
   COMPLETED: 'Completed',
+  DROPPED: 'Dropped',
   WITHDRAWN: 'Withdrawn',
   FAILED: 'Failed',
 };
+
+export const ENROLLMENT_STATUS_OPTIONS = [
+  { value: 'Active', label: 'Active', color: 'green' },
+  { value: 'Completed', label: 'Completed', color: 'blue' },
+  { value: 'Dropped', label: 'Dropped', color: 'gray' },
+  { value: 'Failed', label: 'Failed', color: 'red' },
+  { value: 'Withdrawn', label: 'Withdrawn', color: 'yellow' },
+];
 
 // Grade Grades
 export const GRADES = {
@@ -34,6 +43,9 @@ export const GRADE_POINTS = {
   D: 1.0,
   F: 0.0,
 };
+
+// Grade Options for Dropdown
+export const GRADE_OPTIONS = ['A', 'B', 'C', 'D', 'F'];
 
 // HTTP Status Codes
 export const HTTP_STATUS = {

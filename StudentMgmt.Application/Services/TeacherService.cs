@@ -13,14 +13,6 @@ public class TeacherService(IApplicationDbContext context, ILogger<TeacherServic
 
     public async Task<TeacherResponseDto> CreateTeacherAsync(CreateTeacherRequest request)
     {
-        var employeeIdExists = await _context.Teachers
-            .AnyAsync(t => t.EmployeeId == request.EmployeeId);
-
-        if (employeeIdExists)
-        {
-            throw new InvalidOperationException($"Teacher with Employee ID '{request.EmployeeId}' already exists.");
-        }
-
         var emailExists = await _context.Teachers
             .AnyAsync(t => t.Email == request.Email);
 
@@ -29,17 +21,31 @@ public class TeacherService(IApplicationDbContext context, ILogger<TeacherServic
             throw new InvalidOperationException($"Teacher with email '{request.Email}' already exists.");
         }
 
+        // Use the employee ID from request if provided, otherwise generate one
+        var employeeId = string.IsNullOrWhiteSpace(request.EmployeeId)
+            ? await GenerateNextEmployeeIdAsync()
+            : request.EmployeeId;
+
+        // Check if employee ID already exists
+        var employeeIdExists = await _context.Teachers
+            .AnyAsync(t => t.EmployeeId == employeeId);
+
+        if (employeeIdExists)
+        {
+            throw new InvalidOperationException($"Teacher with Employee ID '{employeeId}' already exists.");
+        }
+
         var teacher = new Teacher(
             request.FirstName,
             request.LastName,
             request.Email,
-            request.EmployeeId,
+            employeeId,
             request.Department)
         {
             FirstName = request.FirstName,
             LastName = request.LastName,
             Email = request.Email,
-            EmployeeId = request.EmployeeId,
+            EmployeeId = employeeId,
             Department = request.Department
         };
 
@@ -126,6 +132,19 @@ public class TeacherService(IApplicationDbContext context, ILogger<TeacherServic
             teacher.EmployeeId,
             teacher.FirstName,
             teacher.LastName);
+    }
+
+    public async Task<string> GenerateNextEmployeeIdAsync()
+    {
+        var currentYear = DateTime.UtcNow.Year;
+        var yearPrefix = $"EMP{currentYear}";
+        
+        var existingCount = await _context.Teachers
+            .Where(t => t.EmployeeId.StartsWith(yearPrefix))
+            .CountAsync();
+        
+        var sequenceNumber = (existingCount + 1).ToString("D4");
+        return $"{yearPrefix}{sequenceNumber}";
     }
 
     private static TeacherResponseDto ToDto(Teacher teacher) => new(

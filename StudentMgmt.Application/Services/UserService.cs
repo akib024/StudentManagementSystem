@@ -77,7 +77,7 @@ public class UserService(IApplicationDbContext context, ILogger<UserService> log
                 student.Id,
                 student.EnrollmentNumber);
 
-            return new UserResponseDto(user.Id, user.Username, user.Role, user.StudentId);
+            return new UserResponseDto(user.Id, user.Username, user.Role, user.StudentId, user.TeacherId);
         }
         catch (Exception ex)
         {
@@ -129,6 +129,25 @@ public class UserService(IApplicationDbContext context, ILogger<UserService> log
             authDuration);
 
         return (true, user.Role, user.Id);
+    }
+
+    public async Task<UserResponseDto?> GetUserByIdAsync(Guid userId)
+    {
+        var user = await _context.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user is null)
+        {
+            return null;
+        }
+
+        return new UserResponseDto(
+            user.Id,
+            user.Username,
+            user.Role,
+            user.StudentId,
+            user.TeacherId);
     }
 
     public async Task UpdateProfileAsync(Guid userId, UpdateProfileRequest request)

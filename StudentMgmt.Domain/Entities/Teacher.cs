@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using StudentMgmt.Domain.Common;
 
 namespace StudentMgmt.Domain.Entities;
@@ -30,4 +31,8 @@ public class Teacher(
     [Required(ErrorMessage = "Department is required.")]
     [StringLength(100, ErrorMessage = "Department must not exceed 100 characters.")]
     public required string Department { get; set; } = department;
+
+    [ForeignKey(nameof(Department))]
+    public Guid? DepartmentId { get; set; }
 }
+

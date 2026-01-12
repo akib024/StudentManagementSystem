@@ -5,6 +5,11 @@ export const courseService = {
     return apiClient.get('/courses');
   },
 
+  async getMyCourses() {
+    // For now, returns all courses. In a real system, this would filter by teacher
+    return apiClient.get('/courses');
+  },
+
   async getCourseById(id) {
     return apiClient.get(`/courses/${id}`);
   },

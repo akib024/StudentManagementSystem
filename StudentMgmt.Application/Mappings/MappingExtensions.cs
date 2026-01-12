@@ -62,6 +62,7 @@ public static class MappingExtensions
             enrollment.Course?.CourseCode ?? string.Empty,
             enrollment.Course?.Title ?? string.Empty,
             enrollment.Course?.Credits ?? 0,
+            enrollment.Course?.Teacher != null ? $"{enrollment.Course.Teacher.FirstName} {enrollment.Course.Teacher.LastName}" : null,
             enrollment.Grade,
             enrollment.Status.ToString(),
             DateTime.UtcNow);

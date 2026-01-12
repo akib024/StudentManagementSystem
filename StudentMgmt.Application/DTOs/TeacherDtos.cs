@@ -4,7 +4,7 @@ public record CreateTeacherRequest(
     string FirstName,
     string LastName,
     string Email,
-    string EmployeeId,
+    string? EmployeeId,
     string Department);
 
 public record UpdateTeacherRequest(

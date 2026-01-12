@@ -68,7 +68,17 @@ public class StudentService(
             throw new ApplicationException("Student with this email already exists.");
         }
 
-        var enrollmentNumber = GenerateEnrollmentNumber();
+        // Use the enrollment number from request if provided, otherwise generate one
+        var enrollmentNumber = string.IsNullOrWhiteSpace(request.EnrollmentNumber)
+            ? await GenerateEnrollmentNumber()
+            : request.EnrollmentNumber;
+
+        // Check if enrollment number already exists
+        var enrollmentExists = await dbContext.Students.AnyAsync(s => s.EnrollmentNumber == enrollmentNumber);
+        if (enrollmentExists)
+        {
+            throw new ApplicationException($"Student with enrollment number '{enrollmentNumber}' already exists.");
+        }
 
         var student = new Student(
             request.FirstName,
@@ -139,6 +149,23 @@ public class StudentService(
             student.Id);
     }
 
-    private static string GenerateEnrollmentNumber() =>
-        $"STU-{Random.Shared.Next(100000, 999999)}";
+    private async Task<string> GenerateEnrollmentNumber()
+    {
+        var currentYear = DateTime.UtcNow.Year;
+        var yearPrefix = $"STU{currentYear}";
+        
+        // Count existing enrollment numbers for this year
+        var existingCount = await dbContext.Students
+            .Where(s => s.EnrollmentNumber.StartsWith(yearPrefix))
+            .CountAsync();
+        
+        // Generate sequential number: STU202600001, STU202600002, etc.
+        var sequenceNumber = (existingCount + 1).ToString("D4");
+        return $"{yearPrefix}{sequenceNumber}";
+    }
+
+    public async Task<string> GenerateNextEnrollmentNumberAsync()
+    {
+        return await GenerateEnrollmentNumber();
+    }
 }

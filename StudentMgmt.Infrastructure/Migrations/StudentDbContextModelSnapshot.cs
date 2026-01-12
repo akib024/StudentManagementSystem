@@ -58,6 +58,9 @@ namespace StudentMgmt.Infrastructure.Migrations
                     b.Property<string>("LastModifiedBy")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid?>("TeacherId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -68,7 +71,50 @@ namespace StudentMgmt.Infrastructure.Migrations
                     b.HasIndex("CourseCode")
                         .IsUnique();
 
+                    b.HasIndex("TeacherId");
+
                     b.ToTable("Courses");
+                });
+
+            modelBuilder.Entity("StudentMgmt.Domain.Entities.Department", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Departments");
                 });
 
             modelBuilder.Entity("StudentMgmt.Domain.Entities.Enrollment", b =>
@@ -247,6 +293,9 @@ namespace StudentMgmt.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<Guid?>("DepartmentId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(255)
@@ -277,6 +326,8 @@ namespace StudentMgmt.Infrastructure.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DepartmentId");
 
                     b.HasIndex("Email")
                         .IsUnique();
@@ -323,6 +374,9 @@ namespace StudentMgmt.Infrastructure.Migrations
                     b.Property<Guid?>("StudentId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("TeacherId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -334,10 +388,21 @@ namespace StudentMgmt.Infrastructure.Migrations
                         .IsUnique()
                         .HasFilter("[StudentId] IS NOT NULL");
 
+                    b.HasIndex("TeacherId");
+
                     b.HasIndex("Username")
                         .IsUnique();
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("StudentMgmt.Domain.Entities.Course", b =>
+                {
+                    b.HasOne("StudentMgmt.Domain.Entities.Teacher", "Teacher")
+                        .WithMany()
+                        .HasForeignKey("TeacherId");
+
+                    b.Navigation("Teacher");
                 });
 
             modelBuilder.Entity("StudentMgmt.Domain.Entities.Enrollment", b =>
@@ -370,6 +435,14 @@ namespace StudentMgmt.Infrastructure.Migrations
                     b.Navigation("Enrollment");
                 });
 
+            modelBuilder.Entity("StudentMgmt.Domain.Entities.Teacher", b =>
+                {
+                    b.HasOne("StudentMgmt.Domain.Entities.Department", null)
+                        .WithMany("Teachers")
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
             modelBuilder.Entity("StudentMgmt.Domain.Entities.User", b =>
                 {
                     b.HasOne("StudentMgmt.Domain.Entities.Student", "Student")
@@ -377,12 +450,23 @@ namespace StudentMgmt.Infrastructure.Migrations
                         .HasForeignKey("StudentMgmt.Domain.Entities.User", "StudentId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("StudentMgmt.Domain.Entities.Teacher", "Teacher")
+                        .WithMany()
+                        .HasForeignKey("TeacherId");
+
                     b.Navigation("Student");
+
+                    b.Navigation("Teacher");
                 });
 
             modelBuilder.Entity("StudentMgmt.Domain.Entities.Course", b =>
                 {
                     b.Navigation("Enrollments");
+                });
+
+            modelBuilder.Entity("StudentMgmt.Domain.Entities.Department", b =>
+                {
+                    b.Navigation("Teachers");
                 });
 
             modelBuilder.Entity("StudentMgmt.Domain.Entities.Enrollment", b =>

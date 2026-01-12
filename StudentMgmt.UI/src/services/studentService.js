@@ -20,6 +20,10 @@ export const studentService = {
   async deleteStudent(id) {
     return apiClient.delete(`/students/${id}`);
   },
+
+  async getNextEnrollmentNumber() {
+    return apiClient.get('/students/enrollment-number/next');
+  },
 };
 
 export default studentService;

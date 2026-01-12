@@ -34,7 +34,11 @@ builder.Host.UseSerilog((context, services, configuration) => configuration
     .Enrich.WithThreadId());
 
 // Add services to the container
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    });
 
 // Configure CORS
 builder.Services.AddCors(options =>
@@ -132,6 +136,7 @@ builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
 builder.Services.AddScoped<ITeacherService, TeacherService>();
 builder.Services.AddScoped<IDepartmentService, DepartmentService>();
+builder.Services.AddScoped<IReportService, ReportService>();
 
 var app = builder.Build();
 
@@ -189,7 +194,11 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
+// Only use HTTPS redirection in production (avoid redirect issues in development)
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 // Enable CORS
 app.UseCors("AllowReactApp");

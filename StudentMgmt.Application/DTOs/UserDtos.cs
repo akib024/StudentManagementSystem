@@ -12,7 +12,8 @@ public record UserResponseDto(
     Guid Id,
     string Username,
     string Role,
-    Guid? StudentId);
+    Guid? StudentId,
+    Guid? TeacherId);
 
 public record UpdateProfileRequest(
     string FirstName,
